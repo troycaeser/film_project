@@ -1,0 +1,30 @@
+.inputs
+	position: relative
+	display: block
+	width: 980px
+	height: 150px
+	margin: auto
+
+.textfield
+	font-family: inherit
+	display: block
+	border: none
+	outline: none
+	background-color: transparent
+	border-bottom: 2px solid rgba(255,255,255,0.1)
+	padding: 0 0 0 0.35em
+	font-size: 5em
+	font-weight: 100
+	width: 100%
+	color: $yellow
+
+.textfield:focus
+	color: $yellow
+
+.textfield::-webkit-input-placeholder
+	color: $yellow
+	text-align: center
+	-webkit-transition: color 0.3s
+
+.textfield:focus::-webkit-input-placeholder
+	color: $grey

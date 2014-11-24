@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>film</title>
+	<!-- <link rel="stylesheet" href="//ajax.googleapis.com/ajax/libs/jqueryui/1.11.2/themes/smoothness/jquery-ui.css" /> -->
+	<link rel="stylesheet" type="text/css" href="styles/style.css">
+</head>
+<body>
+	<div class="container">
+		<div class="tabs">
+			<!-- displays time -->
+			<div class="display">
+				<div class="hours">
+					<span id="hours" class="count">0</span>
+					<span id="descHr">hours</span>
+				</div>
+				<div class="minutes">
+					<span id="minutes" class="count">0</span>
+					<span id="descMin">minutes</span>
+				</div>
+			</div>
+			<nav class="tab effect">
+				<ul>
+					<li class="tab-current" role="collection"><a class="tab_nav" href="#">Collections</a></li>
+					<li role="movie"><a class="tab_nav" href="#">Movies</a></li>
+				</ul>
+			</nav>
+			<div id="section-bar-collection" class="tab_content current" role="collection">
+				<!-- displays inputs-->
+				<div action="" class="inputs">
+					<input id="collection" class="textfield" placeholder="-- Type something --" type="text" />
+				</div>
+			</div>
+			<div id="section-bar-movie" class="tab_content" role="movie">
+				<!-- displays inputs-->
+				<div action="" class="inputs">
+					<input id="movie" class="textfield" placeholder="-- Type something --" type="text" />
+				</div>
+			</div>
+			<!-- displays results -->
+			<!-- <ul class="movielist"></ul> -->
+		</div>
+	</div>
+
+	<div class="imgStuff"></div>
+
+	<script src="//ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+	<script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.11.2/jquery-ui.min.js"></script>
+	<script src="js/stuff.js"></script>
+</body>
+</html>
