@@ -107,6 +107,14 @@ body {
   height: 150px;
   margin: auto; }
 
+.active::after {
+  content: "searching...";
+  float: right;
+  color: white;
+  opacity: 0.3;
+  display: block;
+  margin-top: 10px; }
+
 .textfield {
   font-family: inherit;
   display: block;

@@ -19,8 +19,7 @@ $(document).ready(function() {
 				key: '?api_key=7bffe4fa3e178f55e7f2552625bcc4a3',
 				button: $('#buttons'),
 				autoOp: '&search_type=ngram',
-				stackResults: [], //<!-- this is basically all the results
-				stackMovie: []
+				stackResults: [] //<!-- this is basically all the results
 			},
 
 			//init function
@@ -54,8 +53,28 @@ $(document).ready(function() {
 					select		: TmdbSearch.imageTimeHandler
 				})
 				.autocomplete( "instance" )._renderMenu = TmdbSearch.autoRenderMenu;
+
 				//bind tabs for navigation
 				TmdbSearch.el.tab_nav.on("click", TmdbSearch.tabHandler);
+
+				//bind searchFields for helper texts
+				TmdbSearch.el.searchFieldCollection.keyup(TmdbSearch.autoHint);
+				TmdbSearch.el.searchFieldMovie.keyup(TmdbSearch.autoHint);
+			},
+
+			autoHint: function(event){
+				var value = $.trim( this.value ),
+					length = value.length,
+					thisElem = $(this);
+
+				console.log(length);
+
+				if(length > 2){
+					thisElem.parent().addClass('active');
+				}
+				else{
+					thisElem.parent().removeClass('active');
+				}
 			},
 
 			tabHandler: function(){
@@ -138,6 +157,7 @@ $(document).ready(function() {
 			},
 
 			autoRender: function(ul, item){
+				// console.log(item);
 				switch(item.category) {
 					case "COLLECTIONS":
 						return $("<li class='autolist'>")
@@ -149,9 +169,17 @@ $(document).ready(function() {
 						.append("<a>" + item.value + "</a>")
 						.appendTo(ul);
 					case "MOVIES":
-						return $("<li class='autolist'>")
-						.append("<a>" + item.value + "</a>")
-						.appendTo(ul);
+						var year = item.year;
+						if(year.length == 0){
+							return $("<li class='autolist'>")
+							.append("<a>" + item.value + "</a>")
+							.appendTo(ul);
+						}
+						else{
+							return $("<li class='autolist'>")
+							.append("<a>" + item.value + " (" + item.year + ") " + "</a>")
+							.appendTo(ul);
+						}
 						break;
 				}
 			},
@@ -280,6 +308,7 @@ $(document).ready(function() {
 						var results = data.results,
 							movie_id = [],
 							movie_title = [],
+							release_date = [],
 							obj,
 							imgBdpath,
 							imgFullPath;
@@ -287,15 +316,18 @@ $(document).ready(function() {
 						for(var i in results){
 							movie_id.push(results[i].id);
 							movie_title.push(results[i].title);
+							release_date.push(results[i].release_date.slice(0, 4));
 							imgBdpath = results[i].backdrop_path;
 							imgFullPath = TmdbSearch.settings.imageUrl + imgBdpath;
 							obj = {
 								id: movie_id[i],
 								value: movie_title[i],
 								category: "MOVIES",
+								year: release_date[i],
 								path: imgFullPath,
 								time: 0 //<!-- will be edited later
 							}
+
 							TmdbSearch.settings.stackResults.push(obj);
 							response(TmdbSearch.settings.stackResults);
 
@@ -314,8 +346,6 @@ $(document).ready(function() {
 					url: s.url + s.mode[3] + "/" + input + s.key,
 					dataType: 'json',
 					success: function(data) {
-						console.log(data.runtime);
-
 						var obj,
 							id,
 							total_time;
@@ -332,8 +362,6 @@ $(document).ready(function() {
 						};
 
 						TmdbSearch.settings.stackResults.push(obj);
-
-						// console.log(obj);
 					},
 					error: function(e) {
 						console.log(e.message);
