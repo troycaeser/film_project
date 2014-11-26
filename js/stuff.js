@@ -13,7 +13,7 @@ $(document).ready(function() {
 			//basic settings
 			settings: {
 				url: 'http://api.themoviedb.org/3/',
-				imageUrl: 'http://image.tmdb.org/t/p/original',
+				imageUrl: 'http://image.tmdb.org/t/p/w300',
 				mode: ['search/collection', 'collection', 'search/movie', 'movie'],
 				query: '&query=',
 				key: '?api_key=7bffe4fa3e178f55e7f2552625bcc4a3',
@@ -45,7 +45,7 @@ $(document).ready(function() {
 
 				//bind autocomplete with searchMovie
 				TmdbSearch.el.searchFieldMovie.autocomplete({
-					minLength	: 3,
+					minLength	: 2,
 					source		: function(request, response){
 						TmdbSearch.searchMovie(request.term, response, TmdbSearch.searchMovieTime);
 						TmdbSearch.settings.stackResults = [];
@@ -104,11 +104,20 @@ $(document).ready(function() {
 			},
 
 			imageTimeHandler: function(event, ui){
-				// console.log(ui.item);
+				//removes hint
+				TmdbSearch.el.searchFieldCollection.parent().removeClass('active');
+				TmdbSearch.el.searchFieldMovie.parent().removeClass('active');
+
+				console.log(ui.item);
 				var image_path = "url(" + ui.item.path + ")",
+					poster_path = ui.item.pt_path,
 					searchID = ui.item.id,
 					searchCategory = ui.item.category,
+					title = ui.item.value,
 					totalTime = 0;
+
+				//call insert image function
+				TmdbSearch.insertImage(poster_path, title);
 
 				//This filters the stackResults, and returns everything with only the same id.
 				var filt_result = $.grep(TmdbSearch.settings.stackResults, function(item){
@@ -144,6 +153,14 @@ $(document).ready(function() {
 				}, 1400);
 			},
 
+			insertImage: function(poster_path, title){
+				if(poster_path == null){
+					$('.movielist').prepend('<li><span class="movieItem_null">' + title + '</span></li>');
+				}else{
+					$('.movielist').prepend('<li><img class="movieItem" src="' + poster_path + '" /></li>')
+				}
+			},
+
 			//AUTOCOMPLETE RENDER
 			autoRenderMenu: function(ul, items){
 				var that = this,
@@ -157,7 +174,6 @@ $(document).ready(function() {
 			},
 
 			autoRender: function(ul, item){
-				// console.log(item);
 				switch(item.category) {
 					case "COLLECTIONS":
 						return $("<li class='autolist'>")
@@ -199,18 +215,38 @@ $(document).ready(function() {
 							collection_name = [],
 							obj,
 							imgBdpath,
-							imgFullPath;
+							imgPtpath,
+							imgFullBdpath,
+							imgFullPtpath;
 
 						for(var i in results){
 							collection_id.push(results[i].id);
 							collection_name.push(results[i].name);
 							imgBdpath = results[i].backdrop_path;
-							imgFullPath = TmdbSearch.settings.imageUrl + imgBdpath;
+							imgPtpath = results[i].poster_path;
+
+							//check if backdrop is null
+							if(imgBdpath == null){
+								imgFullBdpath = null;
+							}
+							else{
+								imgFullBdpath = TmdbSearch.settings.imageUrl + imgBdpath;
+							}
+
+							//check if poster is null
+							if(imgPtpath == null){
+								imgFullPtpath = null;
+							}
+							else{
+								imgFullPtpath = TmdbSearch.settings.imageUrl + imgPtpath;
+							}
+
 							obj = {
 								id: collection_id[i],
 								value: collection_name[i],
 								category: "COLLECTIONS",
-								path: imgFullPath,
+								path: imgFullBdpath,
+								pt_path: imgFullPtpath,
 								time: 0 //<!-- will be edited later
 							};
 							TmdbSearch.settings.stackResults.push(obj);
@@ -238,18 +274,37 @@ $(document).ready(function() {
 							part_id = [],
 							obj,
 							imgBdpath,
-							imgFullPath;
+							imgPtpath,
+							imgFullBdpath;
 
 						for(var i in parts){
 							part_title.push(parts[i].title);
 							part_id.push(parts[i].id);
 							imgBdpath = parts[i].backdrop_path;
-							imgFullPath = TmdbSearch.settings.imageUrl + imgBdpath;
+							imgPtpath = parts[i].poster_path;
+
+							//check if backdrop is null
+							if(imgBdpath == null){
+								imgFullBdpath = null;
+							}
+							else{
+								imgFullBdpath = TmdbSearch.settings.imageUrl + imgBdpath;
+							}
+
+							//check if poster is null
+							if(imgPtpath == null){
+								imgFullPtpath = null;
+							}
+							else{
+								imgFullPtpath = TmdbSearch.settings.imageUrl + imgPtpath;
+							}
+
 							obj = {
 								id: part_id[i],
 								category: "PARTS",
 								value: part_title[i],
-								path: imgFullPath,
+								path: imgFullBdpath,
+								pt_path: imgFullPtpath,
 								time: 0 //<!-- will be edited later
 							};
 							// TmdbSearch.settings.stackResults.push(obj);
@@ -311,20 +366,40 @@ $(document).ready(function() {
 							release_date = [],
 							obj,
 							imgBdpath,
-							imgFullPath;
+							imgPtpath,
+							imgFullBdpath,
+							imgFullPtpath;
 
 						for(var i in results){
 							movie_id.push(results[i].id);
 							movie_title.push(results[i].title);
 							release_date.push(results[i].release_date.slice(0, 4));
 							imgBdpath = results[i].backdrop_path;
-							imgFullPath = TmdbSearch.settings.imageUrl + imgBdpath;
+							imgPtpath = results[i].poster_path;
+
+							//check if backdrop is null
+							if(imgBdpath == null){
+								imgFullBdpath = null;
+							}
+							else{
+								imgFullBdpath = TmdbSearch.settings.imageUrl + imgBdpath;
+							}
+
+							//check if poster is null
+							if(imgPtpath == null){
+								imgFullPtpath = null;
+							}
+							else{
+								imgFullPtpath = TmdbSearch.settings.imageUrl + imgPtpath;
+							}
+
 							obj = {
 								id: movie_id[i],
 								value: movie_title[i],
 								category: "MOVIES",
 								year: release_date[i],
-								path: imgFullPath,
+								path: imgFullBdpath,
+								pt_path: imgFullPtpath,
 								time: 0 //<!-- will be edited later
 							}
 
