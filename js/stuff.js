@@ -19,14 +19,51 @@ $(document).ready(function() {
 				key: '?api_key=7bffe4fa3e178f55e7f2552625bcc4a3',
 				button: $('#buttons'),
 				autoOp: '&search_type=ngram',
-				stackResults: [] //<!-- this is basically all the results
+				initialTime: [],
+				stackResults: [], //<!-- this is basically all the results
+				localResults: []
 			},
 
 			//init function
 			init: function() {
-				//input = movie name
 				s = this.settings;
 				this.bindUIActions();
+				this.readLocal();
+			},
+
+			//read local storage
+			readLocal: function(){
+				//get and prepare local data
+				var local = localStorage.getItem('local'),
+					results = JSON.parse(local);
+
+				//save to localStorage
+				var arrResult = TmdbSearch.settings.localResults;
+				localStorage.setItem('local', JSON.stringify(arrResult));
+
+				//get total time and insert images
+				var time = 0;
+				for(var i in results){
+					time = time + results[i].runtime;
+					console.log(results[i].backdrop + results[i].title);
+					TmdbSearch.insertImage(results[i].poster, results[i].title);
+
+					var last_result = results.length - 1;
+
+					//populate stuffers, then make sure its all loaded.
+					$('.bd_stuffer').attr('src', results[last_result].backdrop).load(function() {
+						$('.imgStuff').css('background-image', 'url(' + results[last_result].backdrop + ')');
+						$(this).attr('src', 'null'); //empties buffer
+					});
+				}
+
+				// console.log(time);
+				TmdbSearch.calculateTime(time);
+
+				//save local time
+				TmdbSearch.settings.initialTime.push(time);
+				// console.log(TmdbSearch.settings.initialTime);
+
 			},
 
 			//UI BINDING
@@ -39,7 +76,9 @@ $(document).ready(function() {
 						TmdbSearch.searchCollection(request.term, response, TmdbSearch.searchCollectionId);
 						TmdbSearch.settings.stackResults = [];
 					},
-					select		: TmdbSearch.imageTimeHandler
+					select		: TmdbSearch.imageTimeHandler,
+					open		: TmdbSearch.blurEffect,
+					close		: TmdbSearch.blurEffectClose
 				})
 				.autocomplete( "instance" )._renderMenu = TmdbSearch.autoRenderMenu;
 
@@ -50,7 +89,9 @@ $(document).ready(function() {
 						TmdbSearch.searchMovie(request.term, response, TmdbSearch.searchMovieTime);
 						TmdbSearch.settings.stackResults = [];
 					},
-					select		: TmdbSearch.imageTimeHandler
+					select		: TmdbSearch.imageTimeHandler,
+					open		: TmdbSearch.blurEffect,
+					close		: TmdbSearch.blurEffectClose
 				})
 				.autocomplete( "instance" )._renderMenu = TmdbSearch.autoRenderMenu;
 
@@ -66,8 +107,6 @@ $(document).ready(function() {
 				var value = $.trim( this.value ),
 					length = value.length,
 					thisElem = $(this);
-
-				console.log(length);
 
 				if(length > 2){
 					thisElem.parent().addClass('active');
@@ -108,13 +147,13 @@ $(document).ready(function() {
 				TmdbSearch.el.searchFieldCollection.parent().removeClass('active');
 				TmdbSearch.el.searchFieldMovie.parent().removeClass('active');
 
-				console.log(ui.item);
-				var image_path = "url(" + ui.item.path + ")",
+				var image_path = ui.item.path,
 					poster_path = ui.item.pt_path,
 					searchID = ui.item.id,
 					searchCategory = ui.item.category,
 					title = ui.item.value,
-					totalTime = 0;
+					runTime = 0,
+					localLength = $('.movielist').children().length + 1;
 
 				//call insert image function
 				TmdbSearch.insertImage(poster_path, title);
@@ -129,14 +168,53 @@ $(document).ready(function() {
 						return item.category == "TIME";
 					});
 
-				//loop through the time array and add total time.
+				//loop through the time array and get the collection runTime
 				for(var i in filt_time){
-					totalTime += filt_time[i].time;
+					runTime += filt_time[i].time;
 				}
 
+				TmdbSearch.settings.initialTime.push(runTime);
+
+				//now loop through initialTime array to get correct time
+				var time_result = TmdbSearch.settings.initialTime,
+					totalTime = 0;
+
+				for(var i in time_result){
+					totalTime += time_result[i]
+				}
+
+				// //define local variables
+				var obj = {
+						local_id: localLength,
+						runtime: runTime,
+						backdrop: image_path,
+						poster: poster_path,
+						obj_id: searchID,
+						category: searchCategory,
+						title: title
+					};
+
+				//save to localResults
+				TmdbSearch.settings.localResults.push(obj);
+
+				//save to localStorage
+				var results = TmdbSearch.settings.localResults;
+				localStorage.setItem('local', JSON.stringify(results));
+
+				TmdbSearch.calculateTime(totalTime);
+				// console.log(totalTime);
+
+				//populate stuffers, then make sure its all loaded.
+				$('.bd_stuffer').attr('src', image_path).load(function() {
+					$('.imgStuff').css('background-image', 'url(' + image_path + ')');
+					$(this).attr('src', 'null'); //empties buffer
+				});
+			},
+
+			calculateTime: function(totalTime){
 				//calculate time
-				var hours = Math.floor( totalTime / 60);
-				var minutes = totalTime % 60;
+				var hours = Math.floor( totalTime / 60),
+					minutes = totalTime % 60;
 
 				//animate time
 				jQuery({ Counter: 0, Counter2: 0 }).animate({ Counter: hours, Counter2: minutes }, {
@@ -146,19 +224,29 @@ $(document).ready(function() {
 						$('#minutes').text(Math.ceil(this.Counter2));
 					}
 				});
-
-				// allow time to preload image before showing
-				setTimeout(function(){
-					$('.imgStuff').css("background-image", image_path);
-				}, 1400);
 			},
 
 			insertImage: function(poster_path, title){
+				var item_null = $('<span class="movieItem_null">' + title + '</span>').css('display', 'flex').hide().fadeIn(300),
+					item = $('<img class="movieItem" src="' + poster_path + '" />').css('display', 'flex').hide().fadeIn(300),
+					helper = $('<span class="helper">' + title + '</span>').hide().fadeIn(300);
 				if(poster_path == null){
-					$('.movielist').prepend('<li><span class="movieItem_null">' + title + '</span></li>');
+					$('.movielist').append(
+						$('<li>').append(item_null)
+					);
 				}else{
-					$('.movielist').prepend('<li><img class="movieItem" src="' + poster_path + '" /></li>')
+					$('.movielist').append(
+						$('<li>').append(item).append(helper)
+					);
 				}
+			},
+
+			blurEffect: function(){
+				$('.movielist').addClass('blur');
+			},
+
+			blurEffectClose: function(){
+				$('.movielist').removeClass('blur');
 			},
 
 			//AUTOCOMPLETE RENDER
