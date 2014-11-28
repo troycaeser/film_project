@@ -39,13 +39,17 @@ $(document).ready(function() {
 
 				//save to localStorage
 				var arrResult = TmdbSearch.settings.localResults;
-				localStorage.setItem('local', JSON.stringify(arrResult));
+
+				$.each(results, function(index, value){
+					arrResult.push(value);
+				});
+
+				localStorage.setItem('local', JSON.stringify(results));
 
 				//get total time and insert images
 				var time = 0;
 				for(var i in results){
 					time = time + results[i].runtime;
-					console.log(results[i].backdrop + results[i].title);
 					TmdbSearch.insertImage(results[i].poster, results[i].title);
 
 					var last_result = results.length - 1;
@@ -199,6 +203,7 @@ $(document).ready(function() {
 
 				//save to localStorage
 				var results = TmdbSearch.settings.localResults;
+				console.log(results);
 				localStorage.setItem('local', JSON.stringify(results));
 
 				TmdbSearch.calculateTime(totalTime);
