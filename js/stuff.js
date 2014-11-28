@@ -236,12 +236,12 @@ $(document).ready(function() {
 					item = $('<img class="movieItem" src="' + poster_path + '" />').css('display', 'flex').hide().fadeIn(300),
 					helper = $('<span class="helper">' + title + '</span>').hide().fadeIn(300);
 				if(poster_path == null){
-					$('.movielist').append(
-						$('<li>').append(item_null)
+					$('.movielist').prepend(
+						$('<li>').prepend(item_null)
 					);
 				}else{
-					$('.movielist').append(
-						$('<li>').append(item).append(helper)
+					$('.movielist').prepend(
+						$('<li>').prepend(item).prepend(helper)
 					);
 				}
 			},
